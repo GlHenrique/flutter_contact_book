@@ -1,6 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_contact_book/helpers/contact_helper.dart';
-import 'package:flutter_contact_book/ui/widgets/card.dart';
+import 'package:flutter_contact_book/ui/pages/contact_page.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -14,14 +16,17 @@ class _HomeState extends State<Home> {
 
   List<Contact> contacts = List.empty(growable: true);
 
-  @override
-  void initState() {
-    super.initState();
+  void _getAllContacts() {
     contactHelper.getAllContacts().then((value) {
       setState(() {
         contacts = value;
       });
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -34,17 +39,92 @@ class _HomeState extends State<Home> {
       ),
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          showContactPage();
+        },
         child: const Icon(Icons.add),
         backgroundColor: Colors.red,
       ),
       body: ListView.builder(
         itemCount: contacts.length,
         itemBuilder: (context, index) {
-          return contactCard(context, index, contacts);
+          return GestureDetector(
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: contacts[index].img != null
+                                ? FileImage(
+                                    File(contacts[index].img!),
+                                  )
+                                : const AssetImage('assets/images/person2x.png')
+                                    as ImageProvider,
+                          )),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              contacts[index].name ?? '',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              contacts[index].email ?? '',
+                              style: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              contacts[index].phone ?? '',
+                              style: const TextStyle(
+                                fontSize: 18,
+                              ),
+                            ),
+                          ]),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            onTap: () {
+              showContactPage(contact: contacts[index]);
+            },
+          );
         },
         padding: const EdgeInsets.all(8),
       ),
     );
+  }
+
+  void showContactPage({Contact? contact}) async {
+    final recContact = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (builder) => ContactPage(
+          contact: contact,
+        ),
+      ),
+    );
+    if (recContact != null) {
+      if (contact != null) {
+        await contactHelper.updateContact(recContact);
+        return;
+      }
+
+      await contactHelper.saveContact(recContact);
+    }
+    _getAllContacts();
   }
 }
