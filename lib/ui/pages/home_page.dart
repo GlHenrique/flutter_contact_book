@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contact_book/helpers/contact_helper.dart';
+import 'package:flutter_contact_book/ui/widgets/card.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -40,7 +41,7 @@ class _HomeState extends State<Home> {
       body: ListView.builder(
         itemCount: contacts.length,
         itemBuilder: (context, index) {
-          return Container();
+          return contactCard(context, index, contacts);
         },
         padding: const EdgeInsets.all(8),
       ),
