@@ -18,6 +18,8 @@ class _ContactPageState extends State<ContactPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
+  final FocusNode _nameFocus = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -34,74 +36,112 @@ class _ContactPageState extends State<ContactPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.red,
-        title: Text(_editedContact?.name ?? 'Novo Contato'),
-        centerTitle: true,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: const Icon(Icons.save),
-        backgroundColor: Colors.red,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          children: [
-            GestureDetector(
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: _editedContact?.img != null
-                          ? FileImage(
-                              File(_editedContact?.img! ?? ''),
-                            )
-                          : const AssetImage('assets/images/person2x.png')
-                              as ImageProvider,
-                    )),
-              ),
+    return WillPopScope(
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.red,
+            title: Text(_editedContact?.name ?? 'Novo Contato'),
+            centerTitle: true,
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              if (_editedContact?.name != null &&
+                  (_editedContact?.name)!.isNotEmpty) {
+                Navigator.pop(context, _editedContact);
+                return;
+              }
+              FocusScope.of(context).requestFocus(_nameFocus);
+            },
+            child: const Icon(Icons.save),
+            backgroundColor: Colors.red,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              children: [
+                GestureDetector(
+                  child: Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: _editedContact?.img != null
+                              ? FileImage(
+                                  File(_editedContact?.img! ?? ''),
+                                )
+                              : const AssetImage('assets/images/person2x.png')
+                                  as ImageProvider,
+                        )),
+                  ),
+                ),
+                TextField(
+                  controller: _nameController,
+                  focusNode: _nameFocus,
+                  onChanged: (value) {
+                    _userEdited = true;
+                    setState(() {
+                      _editedContact?.name = value;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    label: Text('Nome'),
+                  ),
+                ),
+                TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: (value) {
+                    _userEdited = true;
+                    _editedContact?.email = value;
+                  },
+                  decoration: const InputDecoration(
+                    label: Text('Email'),
+                  ),
+                ),
+                TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  onChanged: (value) {
+                    _userEdited = true;
+                    _editedContact?.phone = value;
+                  },
+                  decoration: const InputDecoration(
+                    label: Text('Phone'),
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: _nameController,
-              onChanged: (value) {
-                _userEdited = true;
-                setState(() {
-                  _editedContact?.name = value;
-                });
-              },
-              decoration: const InputDecoration(
-                label: Text('Nome'),
-              ),
-            ),
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              onChanged: (value) {
-                _userEdited = true;
-                _editedContact?.email = value;
-              },
-              decoration: const InputDecoration(
-                label: Text('Email'),
-              ),
-            ),
-            TextField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              onChanged: (value) {
-                _userEdited = true;
-                _editedContact?.phone = value;
-              },
-              decoration: const InputDecoration(
-                label: Text('Phone'),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
-    );
+        onWillPop: _requestPop);
+  }
+
+  Future<bool> _requestPop() {
+    if (_userEdited) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Descartar alterações?'),
+              content: const Text('As alterações serão perdidas!'),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Cancelar')),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Sim')),
+              ],
+            );
+          });
+      return Future.value(false);
+    }
+    return Future.value(true);
   }
 }

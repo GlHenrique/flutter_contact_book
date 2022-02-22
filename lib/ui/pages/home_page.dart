@@ -27,6 +27,74 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    _getAllContacts();
+  }
+
+  void _showOptions(BuildContext context, int index) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return BottomSheet(
+          onClosing: () {},
+          builder: (context) {
+            return Container(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextButton(
+                      onPressed: () {},
+                      child: const Text(
+                        'Ligar',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        showContactPage(contact: contacts[index]);
+                      },
+                      child: const Text(
+                        'Editar',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        contactHelper.deleteContact(contacts[index].id!);
+                        _getAllContacts();
+                      },
+                      child: const Text(
+                        'Excluir',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -45,65 +113,74 @@ class _HomeState extends State<Home> {
         child: const Icon(Icons.add),
         backgroundColor: Colors.red,
       ),
-      body: ListView.builder(
-        itemCount: contacts.length,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            image: contacts[index].img != null
-                                ? FileImage(
-                                    File(contacts[index].img!),
-                                  )
-                                : const AssetImage('assets/images/person2x.png')
-                                    as ImageProvider,
-                          )),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              contacts[index].name ?? '',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await Future.delayed(const Duration(seconds: 1));
+          await contactHelper.getAllContacts();
+        },
+        child: ListView.builder(
+          itemCount: contacts.length,
+          physics: const AlwaysScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            return GestureDetector(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                              image: contacts[index].img != null
+                                  ? FileImage(
+                                      File(contacts[index].img!),
+                                    )
+                                  : const AssetImage(
+                                          'assets/images/person2x.png')
+                                      as ImageProvider,
+                            )),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                contacts[index].name ?? '',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            Text(
-                              contacts[index].email ?? '',
-                              style: const TextStyle(
-                                fontSize: 14,
+                              Text(
+                                contacts[index].email ?? '',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                ),
                               ),
-                            ),
-                            Text(
-                              contacts[index].phone ?? '',
-                              style: const TextStyle(
-                                fontSize: 18,
+                              Text(
+                                contacts[index].phone ?? '',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                ),
                               ),
-                            ),
-                          ]),
-                    )
-                  ],
+                            ]),
+                      )
+                    ],
+                  ),
                 ),
               ),
-            ),
-            onTap: () {
-              showContactPage(contact: contacts[index]);
-            },
-          );
-        },
-        padding: const EdgeInsets.all(8),
+              onTap: () {
+                // showContactPage(contact: contacts[index]);
+                _showOptions(context, index);
+              },
+            );
+          },
+          padding: const EdgeInsets.all(8),
+        ),
       ),
     );
   }
@@ -120,11 +197,12 @@ class _HomeState extends State<Home> {
     if (recContact != null) {
       if (contact != null) {
         await contactHelper.updateContact(recContact);
+        _getAllContacts();
         return;
       }
 
       await contactHelper.saveContact(recContact);
+      _getAllContacts();
     }
-    _getAllContacts();
   }
 }
