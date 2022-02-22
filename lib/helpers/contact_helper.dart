@@ -71,7 +71,8 @@ class ContactHelper {
 
   Future<List<Contact>> getAllContacts() async {
     Database dbContact = await db;
-    List listMap = await dbContact.rawQuery('SELECT * FROM $contactTable');
+    List listMap = await dbContact
+        .rawQuery('SELECT * FROM $contactTable ORDER BY $nameColumn ASC');
     List<Contact> listContact = List.empty(growable: true);
     for (Map map in listMap) {
       listContact.add(Contact.fromMap(map));
