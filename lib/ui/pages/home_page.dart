@@ -65,6 +65,11 @@ class _HomeState extends State<Home> {
                     padding: const EdgeInsets.all(8.0),
                     child: TextButton(
                       onPressed: () async {
+                        if (contacts[index].phone == null ||
+                            contacts[index].phone!.isEmpty) {
+                          Navigator.pop(context);
+                          return;
+                        }
                         await launch('tel://${contacts[index].phone}');
                         Navigator.pop(context);
                       },
