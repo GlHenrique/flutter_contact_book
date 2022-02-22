@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_contact_book/helpers/contact_helper.dart';
 import 'package:flutter_contact_book/ui/pages/contact_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -45,7 +46,10 @@ class _HomeState extends State<Home> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        await launch('tel://${contacts[index].phone}');
+                        Navigator.pop(context);
+                      },
                       child: const Text(
                         'Ligar',
                         style: TextStyle(
@@ -134,6 +138,7 @@ class _HomeState extends State<Home> {
                         decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             image: DecorationImage(
+                              fit: BoxFit.cover,
                               image: contacts[index].img != null
                                   ? FileImage(
                                       File(contacts[index].img!),

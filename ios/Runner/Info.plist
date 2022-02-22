@@ -41,5 +41,14 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Este app precisa de permissão para galeria</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Este app precisa de permisão para tirar fotos</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>http</string>
+		<string>https</string>
+	</array>
 </dict>
 </plist>
