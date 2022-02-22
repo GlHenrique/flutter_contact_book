@@ -5,6 +5,8 @@ import 'package:flutter_contact_book/helpers/contact_helper.dart';
 import 'package:flutter_contact_book/ui/pages/contact_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+enum OrderOptions { orderAz, orderZa }
+
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -23,6 +25,22 @@ class _HomeState extends State<Home> {
         contacts = value;
       });
     });
+  }
+
+  void _orderList(OrderOptions order) {
+    switch (order) {
+      case OrderOptions.orderAz:
+        contacts.sort(((a, b) =>
+            (a.name?.toLowerCase())!.compareTo((b.name)!.toLowerCase())));
+        break;
+      case OrderOptions.orderZa:
+        contacts.sort(((a, b) =>
+            (b.name?.toLowerCase())!.compareTo((a.name)!.toLowerCase())));
+        break;
+      default:
+        break;
+    }
+    setState(() {});
   }
 
   @override
@@ -101,6 +119,27 @@ class _HomeState extends State<Home> {
     );
   }
 
+  void showContactPage({Contact? contact}) async {
+    final recContact = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (builder) => ContactPage(
+          contact: contact,
+        ),
+      ),
+    );
+    if (recContact != null) {
+      if (contact != null) {
+        await contactHelper.updateContact(recContact);
+        _getAllContacts();
+        return;
+      }
+
+      await contactHelper.saveContact(recContact);
+      _getAllContacts();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,6 +147,22 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.red,
         title: const Text('Contatos'),
         centerTitle: true,
+        actions: [
+          PopupMenuButton<OrderOptions>(
+            itemBuilder: (BuildContext context) =>
+                <PopupMenuEntry<OrderOptions>>[
+              const PopupMenuItem<OrderOptions>(
+                value: OrderOptions.orderAz,
+                child: Text('Ordenar A-Z'),
+              ),
+              const PopupMenuItem<OrderOptions>(
+                value: OrderOptions.orderZa,
+                child: Text('Ordenar Z-A'),
+              ),
+            ],
+            onSelected: _orderList,
+          )
+        ],
       ),
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
@@ -188,26 +243,5 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
-  }
-
-  void showContactPage({Contact? contact}) async {
-    final recContact = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (builder) => ContactPage(
-          contact: contact,
-        ),
-      ),
-    );
-    if (recContact != null) {
-      if (contact != null) {
-        await contactHelper.updateContact(recContact);
-        _getAllContacts();
-        return;
-      }
-
-      await contactHelper.saveContact(recContact);
-      _getAllContacts();
-    }
   }
 }
